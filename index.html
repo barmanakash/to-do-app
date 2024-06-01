@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form id="task-form">
+            <input type="text" id="task-input" placeholder="Add a new task..." required>
+            <select id="priority-input">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <button type="submit">Add Task</button>
+        </form>
+        <ul id="task-list"></ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskForm = document.getElementById('task-form');
+            const taskInput = document.getElementById('task-input');
+            const priorityInput = document.getElementById('priority-input');
+            const taskList = document.getElementById('task-list');
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            const saveTasks = () => {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            };
+
+            const renderTasks = () => {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    li.className = task.completed ? 'completed' : '';
+                    li.innerHTML = `
+                        <span>${task.text} (${task.priority})</span>
+                        <button class="complete">${task.completed ? 'Undo' : 'Complete'}</button>
+                        <button class="edit">Edit</button>
+                        <button class="delete">Delete</button>
+                    `;
+                    taskList.appendChild(li);
+
+                    li.querySelector('.complete').addEventListener('click', () => {
+                        tasks[index].completed = !tasks[index].completed;
+                        saveTasks();
+                        renderTasks();
+                    });
+
+                    li.querySelector('.edit').addEventListener('click', () => {
+                        taskInput.value = task.text;
+                        priorityInput.value = task.priority;
+                        tasks.splice(index, 1);
+                        saveTasks();
+                        renderTasks();
+                    });
+
+                    li.querySelector('.delete').addEventListener('click', () => {
+                        tasks.splice(index, 1);
+                        saveTasks();
+                        renderTasks();
+                    });
+                });
+            };
+
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const taskText = taskInput.value;
+                const taskPriority = priorityInput.value;
+                tasks.push({ text: taskText, priority: taskPriority, completed: false });
+                saveTasks();
+                renderTasks();
+                taskForm.reset();
+            });
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
